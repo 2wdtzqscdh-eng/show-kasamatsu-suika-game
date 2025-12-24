@@ -54,6 +54,9 @@ window.addEventListener("load", () => {
   // physics bounds and thickness
   let bounds = []; // [floor, leftWall, rightWall]
   const t = 60;    // thickness used for walls/floor
+  // For local development: force using localStorage instead of trying server endpoints.
+  // Set to false when you deploy serverless APIs and want centralized leaderboard.
+  const LOCAL_ONLY_RANKING = true;
 
   let nextLv = 0;
   let previewX = W / 2;
@@ -206,6 +209,19 @@ window.addEventListener("load", () => {
   async function upsertBestScore(playerName, newScore) {
     const name = (playerName || '').trim();
     if (!name) return;
+    // Local-only mode for development/testing: write directly to localStorage
+    if (LOCAL_ONLY_RANKING) {
+      try {
+        const map = await loadRankMap();
+        const prev = map[name];
+        if (prev == null || newScore > prev) {
+          map[name] = newScore;
+          localStorage.setItem(RANK_KEY, JSON.stringify(map));
+          console.log('[ranking] local upsert', name, newScore);
+        }
+        return;
+      } catch (e) { console.warn('[ranking] local upsert failed', e); return; }
+    }
 
     // Try server upsert first
     try {
