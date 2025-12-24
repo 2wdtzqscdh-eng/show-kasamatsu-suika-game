@@ -159,6 +159,7 @@ window.addEventListener("load", () => {
           const dpr = Math.max(1, window.devicePixelRatio || 1);
           render.canvas.width = Math.round(rect.width * dpr);
           render.canvas.height = Math.round(rect.height * dpr);
+          try { Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: W, y: H } }); } catch (e) {}
         }
       }
     } catch (e) { /* ignore */ }
@@ -393,6 +394,8 @@ window.addEventListener("load", () => {
     });
 
     Render.run(render);
+    // ensure renderer view matches world size
+    try { Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: W, y: H } }); } catch (e) {}
     runner = Runner.create();
     Runner.run(runner, engine);
 
