@@ -566,6 +566,23 @@ window.addEventListener("load", () => {
       ctx.restore();
     });
 
+    // Debug overlay: draw translucent circles for all balls so they're visible if sprite textures fail on mobile
+    Events.on(render, "afterRender", () => {
+      try {
+        const ctx = render.context;
+        ctx.save();
+        for (const body of Composite.allBodies(world)) {
+          if (body.label !== 'ball') continue;
+          const r = body.circleRadius || 6;
+          ctx.beginPath();
+          ctx.arc(body.position.x, body.position.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+          ctx.fill();
+        }
+        ctx.restore();
+      } catch (e) { /* ignore */ }
+    });
+
     restartBtn.onclick = () => restart();
   }
 
