@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Kasamatsu Suika</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --W: 420px;
+      --H: 720px;
+      --lineY: 120px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0f0f12;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      height: 100%;
+    }
+
+    .wrap{
+      min-height: 100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      gap: 16px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    /* 왼쪽: 게임 영역 */
+    .left{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+    }
+
+    .hud{
+      width: var(--W);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .hud .score{
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    button{
+      background:#2a2a35;
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
+    button:hover{ background:#3a3a48; }
+
+    #wrapper{
+      position: relative;
+      width: var(--W);
+      height: var(--H);
+      border-radius: 16px;
+      overflow: hidden;
+      background: url("./assets/bg.png") center / contain no-repeat;
+      background-color: #ffffff;
+    }
+
+    #game canvas{ display:block; }
+
+    #danger-line{
+      position:absolute;
+      top: var(--lineY);
+      left:0;
+      width:100%;
+      height:20px;
+      background: url("./assets/red_dash_line.png") center / contain no-repeat;
+      z-index: 5;
+      pointer-events:none;
+      opacity: 0.95;
+    }
+
+    /* 오른쪽: 랭킹 패널 */
+    .right{
+      width: 260px;
+      background: #15151b;
+      border-radius: 16px;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .panel-title{
+      font-weight: 800;
+      font-size: 14px;
+      margin: 0 0 10px 0;
+      opacity: 0.9;
+    }
+
+    .me{
+      font-size: 13px;
+      opacity: 0.85;
+      margin-bottom: 10px;
+    }
+
+    .rank{
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+    }
+
+    .rank-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-size: 13px;
+    }
+
+    .rank-left{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      min-width: 0;
+    }
+
+    .badge{
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 800;
+      font-size: 12px;
+      background: rgba(255,255,255,0.12);
+      flex: 0 0 auto;
+    }
+
+    .name{
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+
+    .scorev{
+      font-variant-numeric: tabular-nums;
+      opacity: 0.9;
+      flex: 0 0 auto;
+    }
+
+    .tip{
+      width: var(--W);
+      font-size: 12px;
+      opacity: 0.7;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    /* 시작 화면 오버레이 */
+    #startOverlay{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.55);
+      z-index: 50;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .startCard{
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255,255,255,0.92);
+      color: #111;
+      border-radius: 18px;
+      padding: 18px 16px;
+      box-sizing: border-box;
+    }
+
+    .startCard h1{
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      letter-spacing: -0.2px;
+    }
+
+    .startCard p{
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      opacity: 0.85;
+      line-height: 1.4;
+    }
+
+    .row{
+      display:flex;
+      gap: 8px;
+    }
+
+    input{
+      flex: 1 1 auto;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.15);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .startBtn{
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #111;
+      color:#fff;
+      font-weight: 700;
+    }
+    .credit{
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      font-size: 12px;
+      opacity: 0.7;
+      color: rgba(255,255,255,0.9);
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="hud">
+  <div class="score"><b>Score</b>: <span id="score">0</span></div>
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div style="font-size:12px; opacity:0.8;">NEXT</div>
+    <div id="nextBox" style="
+      width:44px; height:44px;
+      border-radius:12px;
+      background: rgba(0,0,0,0.12);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    ">
+      <img id="nextImg" src="" alt="next" style="width:100%; height:100%; object-fit:contain;">
+    </div>
+
+    <button id="restart">Restart</button>
+  </div>
+</div>
+
+      <div id="wrapper">
+        <div id="danger-line"></div>
+        <div id="game"></div>
+
+        <!-- 시작 오버레이 -->
+        <div id="startOverlay">
+          <div class="startCard">
+            <h1>Show Kasamatsu Suika Game</h1>
+            <p>이름을 입력하면 게임이 시작됩니다. 名前を入力するとゲームが始まります。</p>
+            <div class="row">
+              <input id="nameInput" maxlength="16" placeholder="이름 입력" />
+              <button class="startBtn" id="startBtn">START</button>
+            </div>
+          </div>
+        </div>
+        <!-- 게임 오버 오버레이 (4초 표시) -->
+        <div id="gameOverOverlay" style="display:none; position:absolute; inset:0; background: rgba(0,0,0,0.65); z-index:60; align-items:center; justify-content:center;">
+          <div style="background: rgba(255,255,255,0.95); color:#111; border-radius:14px; padding:18px 16px; text-align:center; max-width:320px;">
+            <div style="font-weight:700; font-size:22px; margin-bottom:8px;">GAME OVER</div>
+            <div style="font-size:16px; margin-bottom:12px;">Score: <span id="finalScore">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip">
+        마우스 이동 → 떨어질 위치 조절 / 클릭 → 드롭<br>
+        같은 레벨끼리 닿으면 다음 레벨로 합체 (lv0→lv10)
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="panel-title">TOP 3</div>
+      <div class="me">Player: <b id="playerName">-</b></div>
+
+      <div class="rank" id="rankList"></div>
+      <div style="height:10px"></div>
+      <button id="clearRank" style="width:100%;">Clear Ranking</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="./main.js"></script>
+  <div class="credit">Created by @114hops</div>
+</body>
+</html>
