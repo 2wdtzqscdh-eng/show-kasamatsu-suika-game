@@ -78,8 +78,9 @@
       height: var(--H);
       border-radius: 16px;
       overflow: hidden;
-      background: url("./assets/bg.png") center / contain no-repeat;
-      background-color: #ffffff;
+      /* make background fill the container and avoid a white fallback blocking the image */
+      background: url("./assets/bg.png") center / cover no-repeat;
+      background-color: transparent;
     }
 
     #game canvas{ display:block; }
