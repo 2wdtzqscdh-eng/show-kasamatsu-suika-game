@@ -256,10 +256,17 @@
         width: min(92vw, 520px) !important;
       }
 
-      /* gameWrap 안에 캔버스가 있으면 같이 맞춤 */
+      /* gameWrap: 안정적인 세로 높이(svh) 고정 및 canvas를 가득 채우기 */
+      #gameWrap{
+        width: min(92vw, 520px) !important;
+        height: min(78svh, 760px) !important;
+        position: relative;
+      }
+
+      /* canvas를 gameWrap의 가로/세로에 정확히 맞춤 */
       #gameWrap canvas, #wrapper canvas{
         width: 100% !important;
-        height: auto !important;
+        height: 100% !important;
         display: block;
       }
 

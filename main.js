@@ -340,13 +340,14 @@ window.addEventListener("load", () => {
     runner = Runner.create();
     Runner.run(runner, engine);
 
-    // 벽/바닥
-    const t = 60;
-    World.add(world, [
-      Bodies.rectangle(W / 2, H + t / 2, W + 2 * t, t, { isStatic: true }),
-      Bodies.rectangle(-t / 2, H / 2, t, H * 2, { isStatic: true }),
-      Bodies.rectangle(W + t / 2, H / 2, t, H * 2, { isStatic: true }),
-    ]);
+    // 벽/바닥 (floor, leftWall, rightWall)
+    let bounds = []; // [floor, leftWall, rightWall]
+    const t = 60;    // 너가 쓰던 thickness 그대로
+    const floor = Bodies.rectangle(W / 2, H + t / 2, W + 2 * t, t, { isStatic: true });
+    const leftWall = Bodies.rectangle(-t / 2, H / 2, t, H * 2, { isStatic: true });
+    const rightWall = Bodies.rectangle(W + t / 2, H / 2, t, H * 2, { isStatic: true });
+    bounds = [floor, leftWall, rightWall];
+    World.add(world, bounds);
 
     resetScore();
     dropsCount = 0;
