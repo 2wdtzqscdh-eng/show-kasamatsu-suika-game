@@ -2,8 +2,8 @@ window.addEventListener("load", () => {
   const { Engine, Render, Runner, World, Bodies, Body, Events, Composite } = Matter;
 
   // ===== 설정 =====
-  const W = 420;
-  const H = 720;
+  let W = 420;
+  let H = 720;
 
   const MAX_LV = 10;
   const SPAWN_LV_MAX = 3;
@@ -50,6 +50,10 @@ window.addEventListener("load", () => {
   // ===== 상태 =====
   let engine, world, render, runner;
   let score = 0;
+
+  // physics bounds and thickness
+  let bounds = []; // [floor, leftWall, rightWall]
+  const t = 60;    // thickness used for walls/floor
 
   let nextLv = 0;
   let previewX = W / 2;
@@ -109,6 +113,58 @@ window.addEventListener("load", () => {
       }));
     }
     return Promise.all(tasks);
+  }
+
+  // ---- Bounds / resize helpers ----
+  function rebuildBounds() {
+    if (!world) return;
+    // remove existing
+    try {
+      if (bounds && bounds.length) {
+        World.remove(world, bounds);
+        bounds = [];
+      }
+    } catch (e) { /* ignore */ }
+
+    const floor = Bodies.rectangle(W / 2, H + t / 2, W + 2 * t, t, { isStatic: true });
+    const left  = Bodies.rectangle(-t / 2, H / 2, t, H * 2, { isStatic: true });
+    const right = Bodies.rectangle(W + t / 2, H / 2, t, H * 2, { isStatic: true });
+
+    bounds = [floor, left, right];
+    World.add(world, bounds);
+  }
+
+  function updateDangerLine() {
+    const y = Math.round(H * 0.16);
+    document.documentElement.style.setProperty('--lineY', `${y}px`);
+  }
+
+  function resizeGameToWrapper() {
+    const wrapper = document.getElementById('wrapper');
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    // update W/H
+    W = Math.max(100, Math.round(rect.width));
+    H = Math.max(100, Math.round(rect.height));
+
+    // update render size if available
+    try {
+      if (render) {
+        render.options.width = W;
+        render.options.height = H;
+        if (render.canvas) {
+          render.canvas.style.width = '100%';
+          render.canvas.style.height = '100%';
+          // pixel resize
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+          render.canvas.width = Math.round(rect.width * dpr);
+          render.canvas.height = Math.round(rect.height * dpr);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    rebuildBounds();
+    updateDangerLine();
   }
 
   // ===== 랭킹 저장: 플레이어별 최고점 맵 =====
@@ -340,14 +396,8 @@ window.addEventListener("load", () => {
     runner = Runner.create();
     Runner.run(runner, engine);
 
-    // 벽/바닥 (floor, leftWall, rightWall)
-    let bounds = []; // [floor, leftWall, rightWall]
-    const t = 60;    // 너가 쓰던 thickness 그대로
-    const floor = Bodies.rectangle(W / 2, H + t / 2, W + 2 * t, t, { isStatic: true });
-    const leftWall = Bodies.rectangle(-t / 2, H / 2, t, H * 2, { isStatic: true });
-    const rightWall = Bodies.rectangle(W + t / 2, H / 2, t, H * 2, { isStatic: true });
-    bounds = [floor, leftWall, rightWall];
-    World.add(world, bounds);
+    // build bounds according to current W/H
+    rebuildBounds();
 
     resetScore();
     dropsCount = 0;
@@ -378,6 +428,21 @@ window.addEventListener("load", () => {
     fitCanvasToCSS(canvas);
     window.addEventListener('resize', () => fitCanvasToCSS(canvas));
     window.addEventListener('orientationchange', () => setTimeout(()=>fitCanvasToCSS(canvas), 150));
+
+    // observe wrapper size to keep physics bounds and render aligned
+    try {
+      const wrapperEl = document.getElementById('wrapper');
+      if (wrapperEl && typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          // small timeout to allow layout to settle on mobile
+          setTimeout(resizeGameToWrapper, 60);
+        });
+        ro.observe(wrapperEl);
+      }
+      window.addEventListener('orientationchange', () => setTimeout(resizeGameToWrapper, 150));
+      // initial align
+      resizeGameToWrapper();
+    } catch (e) { /* ignore */ }
 
     canvas.addEventListener("mousemove", (e) => {
       if (gameOver) return;
