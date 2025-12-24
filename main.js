@@ -364,7 +364,11 @@ window.addEventListener("load", () => {
     // Ensure canvas pixel size matches CSS layout (handles DPR and responsive resize)
     function fitCanvasToCSS(canvasEl){
       try {
-        const rect = canvasEl.getBoundingClientRect();
+        let rect = canvasEl.getBoundingClientRect();
+        // fallback to parent size when canvas itself reports zero (sometimes on mobile)
+        if ((rect.width === 0 || rect.height === 0) && canvasEl.parentElement) {
+          rect = canvasEl.parentElement.getBoundingClientRect();
+        }
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         canvasEl.width  = Math.round(rect.width * dpr);
         canvasEl.height = Math.round(rect.height * dpr);
