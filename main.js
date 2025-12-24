@@ -56,7 +56,7 @@ window.addEventListener("load", () => {
   const t = 60;    // thickness used for walls/floor
   // For local development: force using localStorage instead of trying server endpoints.
   // Set to false when you deploy serverless APIs and want centralized leaderboard.
-  const LOCAL_ONLY_RANKING = true;
+  const LOCAL_ONLY_RANKING = false; // use server-backed ranking when available
 
   let nextLv = 0;
   let previewX = W / 2;
