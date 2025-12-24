@@ -360,6 +360,20 @@ window.addEventListener("load", () => {
 
     const canvas = render.canvas;
 
+    // Ensure canvas pixel size matches CSS layout (handles DPR and responsive resize)
+    function fitCanvasToCSS(canvasEl){
+      try {
+        const rect = canvasEl.getBoundingClientRect();
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        canvasEl.width  = Math.round(rect.width * dpr);
+        canvasEl.height = Math.round(rect.height * dpr);
+      } catch (e) { /* ignore */ }
+    }
+
+    fitCanvasToCSS(canvas);
+    window.addEventListener('resize', () => fitCanvasToCSS(canvas));
+    window.addEventListener('orientationchange', () => setTimeout(()=>fitCanvasToCSS(canvas), 150));
+
     canvas.addEventListener("mousemove", (e) => {
       if (gameOver) return;
       const rect = canvas.getBoundingClientRect();

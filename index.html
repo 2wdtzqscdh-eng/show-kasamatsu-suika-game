@@ -9,7 +9,12 @@
       --W: 420px;
       --H: 720px;
       --lineY: 120px;
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
     }
+
+    /* ===== Mobile fix for your exact DOM ===== */
+    html, body { overflow-x: hidden; }
 
     html, body {
       margin: 0;
@@ -20,14 +25,21 @@
       height: 100%;
     }
 
+    body{
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* Desktop 기본: 지금처럼 (필요하면 유지) */
     .wrap{
-      min-height: 100vh;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
+      display: grid;
+      grid-template-columns: 1fr 320px; /* game + side */
       gap: 16px;
+      align-items: start;
       padding: 16px;
       box-sizing: border-box;
+      min-height: 100vh;
+      justify-content: center;
     }
 
     /* 왼쪽: 게임 영역 */
@@ -228,6 +240,34 @@
       opacity: 0.7;
       color: rgba(255,255,255,0.9);
       pointer-events: none;
+    }
+
+    /* ===== Mobile: 1 column (game first, TOP3 below) ===== */
+    @media (max-width: 768px){
+      .wrap{
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: center !important;
+      }
+
+      /* support both #gameWrap (user preferred) and existing #wrapper */
+      #gameWrap, #wrapper{
+        width: min(92vw, 520px) !important;
+      }
+
+      /* gameWrap 안에 캔버스가 있으면 같이 맞춤 */
+      #gameWrap canvas, #wrapper canvas{
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+      }
+
+      /* support both #sidePanel and existing .right */
+      #sidePanel, .right{
+        width: min(92vw, 520px) !important;
+        order: 2 !important;
+      }
     }
   </style>
 </head>
